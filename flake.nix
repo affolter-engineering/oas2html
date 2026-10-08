@@ -1,5 +1,5 @@
 {
-  description = "oa-converter — OpenAPI spec to HTML converter";
+  description = "oas2html - OpenAPI spec to HTML converter";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -34,19 +34,19 @@
         # Build only dependencies first (improves caching)
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
 
-        oa-converter = craneLib.buildPackage (commonArgs // {
+        oas2html = craneLib.buildPackage (commonArgs // {
           inherit cargoArtifacts;
         });
       in
       {
         packages = {
-          default = oa-converter;
-          inherit oa-converter;
+          default = oas2html;
+          inherit oas2html;
         };
 
         apps.default = flake-utils.lib.mkApp {
-          drv = oa-converter;
-          name = "oa-converter";
+          drv = oas2html;
+          name = "oas2html";
         };
 
         devShells.default = craneLib.devShell {
@@ -58,7 +58,7 @@
         };
 
         checks = {
-          inherit oa-converter;
+          inherit oas2html;
           clippy = craneLib.cargoClippy (commonArgs // {
             inherit cargoArtifacts;
             cargoClippyExtraArgs = "--all-targets -- --deny warnings";

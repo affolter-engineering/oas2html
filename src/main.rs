@@ -6,7 +6,7 @@ mod renderer;
 
 #[derive(Parser)]
 #[command(
-    name = "oa-converter",
+    name = "oas2html",
     about = "Convert OpenAPI / Swagger specifications (JSON or YAML) to HTML",
     version
 )]

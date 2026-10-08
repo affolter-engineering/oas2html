@@ -1,15 +1,15 @@
-# oa-converter
+# oas2html
 
 Tool to convert OpenAPI specifications (Swagger 2.0/OpenAPI 3.x) to self-contained HTML documentation.
 
 Supports JSON and YAML input. Output is a single HTML file with embedded CSS and JavaScript and no external dependencies.
 
-![Screenshot of oa-converter HTML output](screenshot.png)
+![Screenshot of oas2html HTML output](screenshot.png)
 
 ## Usage
 
 ```bash
-oa-converter <input> [--output <file>] [--title <override>]
+oas2html <input> [--output <file>] [--title <override>]
 ```
 
 | Argument | Description |
@@ -22,13 +22,13 @@ oa-converter <input> [--output <file>] [--title <override>]
 
 ```bash
 # Write to stdout
-oa-converter api.yaml
+oas2html api.yaml
 
 # Write to a file
-oa-converter api.yaml -o docs/api.html
+oas2html api.yaml -o docs/api.html
 
 # Override title
-oa-converter openapi.json -o api.html -t "My API v2"
+oas2html openapi.json -o api.html -t "My API v2"
 ```
 
 ## Build
@@ -50,7 +50,7 @@ nix develop
 
 ```bash
 cargo build --release
-./target/release/oa-converter api.yaml -o api.html
+./target/release/oas2html api.yaml -o api.html
 ```
 
 ## Supported formats
