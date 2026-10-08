@@ -1,0 +1,24 @@
+[package]
+name = "oa-converter"
+version = "0.1.0"
+edition = "2024"
+description = "Convert OpenAPI specifications (JSON/YAML) to HTML documentation"
+authors = ["Fabian Affolter <fabian@affolter-engineering.ch>"]
+license = "MIT"
+repository = "https://github.com/affolter-engineering/oa-converter"
+homepage = "https://github.com/affolter-engineering/oa-converter"
+keywords = ["openapi", "swagger", "html", "documentation", "converter"]
+categories = ["command-line-utilities", "web-programming"]
+readme = "README.md"
+
+[[bin]]
+name = "oa-converter"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+openapi = "0.1.5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"

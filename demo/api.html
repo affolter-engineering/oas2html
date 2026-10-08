@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Management API</title>
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sidebar:280px;
+  --bg-sidebar:#1a1d23;--bg:#fff;--text:#24292f;--border:#e1e4e8;--code-bg:#f6f8fa;
+  --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  --get:#61affe;--post:#49cc90;--put:#fca130;--patch:#50e3c2;
+  --delete:#f93e3e;--head:#9012fe;--options:#0d5aa7;--trace:#785446
+}
+body{font-family:var(--sans);color:var(--text);background:var(--bg)}
+#app{display:flex;min-height:100vh}
+#sidebar{
+  width:var(--sidebar);position:fixed;top:0;left:0;bottom:0;
+  background:var(--bg-sidebar);color:#c9d1d9;overflow-y:auto;
+  display:flex;flex-direction:column;z-index:100
+}
+.sidebar-header{padding:20px 16px 12px;border-bottom:1px solid #30363d}
+.sidebar-title{font-size:14px;font-weight:600;color:#e6edf3;word-break:break-word;line-height:1.4}
+.sidebar-version{font-size:11px;color:#8b949e;margin-top:4px}
+.sidebar-search{padding:10px 12px 6px}
+.sidebar-search input{width:100%;padding:6px 10px;background:#2d3139;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:13px;outline:none}
+.sidebar-search input:focus{border-color:#58a6ff}
+.sidebar-nav{flex:1;overflow-y:auto;padding-bottom:20px}
+.sidebar-group{margin-bottom:2px}
+.sidebar-group-toggle{display:flex;justify-content:space-between;align-items:center;width:100%;padding:8px 16px;background:none;border:none;color:#8b949e;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;cursor:pointer}
+.sidebar-group-toggle:hover{color:#e6edf3}
+.sidebar-item{display:flex;align-items:center;gap:8px;padding:6px 16px 6px 24px;text-decoration:none;color:#c9d1d9;font-size:13px;border-left:2px solid transparent}
+.sidebar-item:hover{background:#2d3139}
+.sidebar-item.active{border-left-color:#58a6ff}
+.sidebar-item.hidden{display:none}
+.item-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.chevron{font-size:10px}
+.sidebar-footer{padding:12px 16px;border-top:1px solid #30363d;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.sidebar-footer-link{color:#8b949e;font-size:11px;font-weight:600;text-decoration:none}
+.sidebar-footer-link:hover{color:#e6edf3}
+.sidebar-footer-ver{color:#57606a;font-size:11px;font-family:var(--mono)}
+#content{margin-left:var(--sidebar);flex:1;max-width:940px;padding:40px 40px 80px}
+.api-header{margin-bottom:36px;padding-bottom:20px;border-bottom:2px solid var(--border)}
+.api-header h1{font-size:28px;font-weight:700;margin-bottom:8px}
+.api-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.ver-badge{background:#ddf4ff;color:#0550ae;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600}
+.oa-badge{background:#f6f8fa;color:#57606a;padding:2px 8px;border-radius:20px;font-size:12px;border:1px solid var(--border)}
+.api-desc{color:#57606a;line-height:1.6;margin-top:8px}
+.api-links{display:flex;gap:14px;margin-top:10px}
+.api-link{color:#0550ae;text-decoration:none;font-size:13px}
+.api-link:hover{text-decoration:underline}
+.info-section{margin-bottom:36px}
+.info-section h2,.tag-section h2.tag-heading{font-size:20px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.tag-section{margin-bottom:48px}
+.tag-desc{color:#57606a;margin-bottom:16px}
+.server-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+.server-list code{font-family:var(--mono);font-size:13px}
+.server-desc{color:#57606a;font-size:13px}
+.scheme-card{border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px}
+.scheme-name{font-weight:600;font-size:14px;margin-right:8px}
+.scheme-type{display:inline-block;background:#fff8c5;color:#7d4e00;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:60px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono);letter-spacing:.05em;color:#fff;flex-shrink:0}
+.badge-get{background:var(--get)}.badge-post{background:var(--post)}.badge-put{background:var(--put)}
+.badge-patch{background:var(--patch);color:#333}.badge-delete{background:var(--delete)}
+.badge-head{background:var(--head)}.badge-options{background:var(--options)}.badge-trace{background:var(--trace)}
+.dep-badge{background:#ffdcd7;color:#82071e;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase}
+.operation{border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.operation.deprecated{opacity:.7}
+.op-header{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;background:#f6f8fa;flex-wrap:wrap;user-select:none}
+.op-header:hover{background:#eaeef2}
+.op-path{font-family:var(--mono);font-size:14px}
+.op-summary{color:#57606a;font-size:13px;flex:1}
+.op-body{display:none;padding:20px;border-top:1px solid var(--border)}
+.op-body.open{display:block}
+.op-desc{color:#57606a;font-size:14px;line-height:1.6;margin-bottom:14px}
+.op-id{font-size:12px;color:#8b949e;margin-bottom:12px}
+.params-section,.body-section,.resp-section{margin-bottom:20px}
+.section-label{font-size:13px;font-weight:700;color:#57606a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block}
+.params-table{width:100%;border-collapse:collapse;font-size:13px}
+.params-table th{padding:7px 10px;background:#f6f8fa;border:1px solid var(--border);font-weight:600;color:#57606a;font-size:11px;text-transform:uppercase}
+.params-table td{padding:7px 10px;border:1px solid var(--border);vertical-align:top}
+.params-table tr.row-required td:first-child{border-left:3px solid #2da44e}
+.type-str{font-family:var(--mono);font-size:12px;color:#0550ae}
+.param-in{display:inline-block;padding:1px 5px;border-radius:4px;font-size:11px;font-weight:600;text-transform:uppercase}
+.param-in-path{background:#fff3cd;color:#7d4e00}.param-in-query{background:#e7f3fe;color:#0550ae}
+.param-in-header{background:#f3e7fe;color:#6e40c9}.param-in-cookie{background:#fce8e6;color:#9e2a2b}
+.param-in-body{background:#e8f5e9;color:#116329}
+.required-label{background:#ffdcd7;color:#82071e;font-size:11px;padding:1px 5px;border-radius:4px;margin-left:6px}
+.body-desc{color:#57606a;font-size:13px;margin-bottom:8px}
+.content-type{display:inline-block;background:var(--code-bg);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:12px;color:#57606a;margin-bottom:6px}
+.media-type{margin-top:8px}
+.resp-item{margin-bottom:10px;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.resp-header{display:flex;align-items:center;gap:8px;padding:7px 12px;background:#f6f8fa}
+.status-code{font-family:var(--mono);font-size:13px;font-weight:700;padding:2px 7px;border-radius:4px}
+.status-2xx{background:#d3f9d8;color:#116329}.status-3xx{background:#f6f8fa;color:#57606a;border:1px solid var(--border)}
+.status-4xx{background:#ffdcd7;color:#82071e}.status-5xx{background:#f9d0cc;color:#9e2a2b}.status-other{background:#f6f8fa;color:#57606a}
+.resp-desc{font-size:13px;color:#57606a}
+.resp-item .code-block{border-radius:0;margin:0}
+.code-block{background:#0d1117;color:#e6edf3;padding:14px;border-radius:6px;font-family:var(--mono);font-size:12px;overflow-x:auto;max-height:400px;white-space:pre;display:block;margin-top:6px}
+.resp-schema{max-height:300px}
+.schema-card{border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden}
+.schema-card-title{padding:10px 16px;font-size:15px;font-weight:700;background:var(--code-bg);border-bottom:1px solid var(--border)}
+.schema-card .code-block{border-radius:0;max-height:500px;margin-top:0}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+@media(max-width:768px){#sidebar{width:100%;position:relative;height:auto}#app{flex-direction:column}#content{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+  <div id="app">
+    <nav id="sidebar"><div class="sidebar-header">
+  <div class="sidebar-title">Task Management API</div>
+  <div class="sidebar-version">v1.0.0</div>
+</div>
+<div class="sidebar-search">
+  <input type="text" id="search-input" placeholder="Filter endpoints..." oninput="filterSidebar(this.value)">
+</div>
+<nav class="sidebar-nav"><div class="sidebar-group">
+  <button class="sidebar-group-toggle" onclick="toggleGroup('default')">default <span class="chevron">▾</span></button>
+  <div class="sidebar-group-items" id="grp-default"><a class="sidebar-item" href="#op-get-tasks" data-method="get">
+  <span class="badge badge-get">get</span>
+  <span class="item-label">/tasks</span>
+</a><a class="sidebar-item" href="#op-post-tasks" data-method="post">
+  <span class="badge badge-post">post</span>
+  <span class="item-label">/tasks</span>
+</a><a class="sidebar-item" href="#op-delete-tasks-id" data-method="delete">
+  <span class="badge badge-delete">delete</span>
+  <span class="item-label">/tasks/{id}</span>
+</a></div></div></nav><footer class="sidebar-footer">
+  <a href="https://github.com/affolter-engineering/oa-converter" class="sidebar-footer-link">oa-converter</a>
+  <span class="sidebar-footer-ver">v0.1.0</span>
+</footer></nav>
+    <main id="content"><header class="api-header">
+  <h1>Task Management API</h1>
+  <div class="api-meta">
+    <span class="ver-badge">v1.0.0</span>
+    <span class="oa-badge">OpenAPI 3.0.0</span>
+  </div><p class="api-desc">A simple API to manage your daily tasks.</p></header><section class="info-section"><h2>Servers</h2><ul class="server-list"><li><code>https://example.com</code> <span class="server-desc">— Production server</span></li></ul></section><section class="tag-section" id="tag-default"><h2 class="tag-heading">default</h2><div class="operation" id="op-get-tasks">
+  <div class="op-header" onclick="toggleOp('op-get-tasks')">
+    <span class="badge badge-get">get</span>
+    <code class="op-path">/tasks</code>
+    
+    <span class="op-summary">List all tasks</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="op-body" id="body-op-get-tasks"><p class="op-desc">Retrieves a list of all tasks.</p><div class="resp-section"><h4 class="section-label">Responses</h4><div class="resp-item"><div class="resp-header"><span class="status-code status-2xx">200</span> <span class="resp-desc">A successful response containing an array of tasks.</span></div><div class="media-type"><span class="content-type">application/json</span><pre class="code-block resp-schema">{
+  &quot;items&quot;: {
+    &quot;$ref&quot;: &quot;#/components/schemas/Task&quot;
+  },
+  &quot;type&quot;: &quot;array&quot;
+}</pre></div></div><div class="resp-item"><div class="resp-header"><span class="status-code status-5xx">500</span> <span class="resp-desc">Internal server error.</span></div></div></div></div>
+</div><div class="operation" id="op-post-tasks">
+  <div class="op-header" onclick="toggleOp('op-post-tasks')">
+    <span class="badge badge-post">post</span>
+    <code class="op-path">/tasks</code>
+    
+    <span class="op-summary">Create a new task</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="op-body" id="body-op-post-tasks"><p class="op-desc">Adds a new task to the management list.</p><div class="body-section"><h4 class="section-label">Request Body <span class="required-label">required</span></h4><span class="content-type">application/json</span><pre class="code-block">{
+  &quot;$ref&quot;: &quot;#/components/schemas/NewTask&quot;
+}</pre></div><div class="resp-section"><h4 class="section-label">Responses</h4><div class="resp-item"><div class="resp-header"><span class="status-code status-2xx">201</span> <span class="resp-desc">Task created successfully.</span></div><div class="media-type"><span class="content-type">application/json</span><pre class="code-block resp-schema">{
+  &quot;$ref&quot;: &quot;#/components/schemas/Task&quot;
+}</pre></div></div><div class="resp-item"><div class="resp-header"><span class="status-code status-4xx">400</span> <span class="resp-desc">Invalid input data.</span></div></div></div></div>
+</div><div class="operation" id="op-delete-tasks-id">
+  <div class="op-header" onclick="toggleOp('op-delete-tasks-id')">
+    <span class="badge badge-delete">delete</span>
+    <code class="op-path">/tasks/{id}</code>
+    
+    <span class="op-summary">Delete a task</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="op-body" id="body-op-delete-tasks-id"><p class="op-desc">Removes a specific task by its unique ID.</p><div class="params-section"><h4 class="section-label">Parameters</h4><table class="params-table"><thead><tr><th>Name</th><th>In</th><th>Type</th><th>Req</th><th>Description</th></tr></thead><tbody><tr class=" row-required"><td><code>id</code></td><td><span class="param-in param-in-path">path</span></td><td><code class="type-str">string</code></td><td>✓</td><td>The unique identifier of the task to delete.</td></tr></tbody></table></div><div class="resp-section"><h4 class="section-label">Responses</h4><div class="resp-item"><div class="resp-header"><span class="status-code status-2xx">204</span> <span class="resp-desc">Task deleted successfully. No content returned.</span></div></div><div class="resp-item"><div class="resp-header"><span class="status-code status-4xx">404</span> <span class="resp-desc">Task not found.</span></div></div><div class="resp-item"><div class="resp-header"><span class="status-code status-5xx">500</span> <span class="resp-desc">Internal server error.</span></div></div></div></div>
+</div></section><section class="info-section" id="schemas"><h2>Schemas</h2><div class="schema-card" id="schema-newtask">
+  <div class="schema-card-title">NewTask</div>
+  <pre class="code-block">{
+  &quot;properties&quot;: {
+    &quot;description&quot;: {
+      &quot;example&quot;: &quot;Milk, bread and eggs&quot;,
+      &quot;type&quot;: &quot;string&quot;
+    },
+    &quot;title&quot;: {
+      &quot;example&quot;: &quot;Buy groceries&quot;,
+      &quot;type&quot;: &quot;string&quot;
+    }
+  },
+  &quot;required&quot;: [
+    &quot;title&quot;
+  ],
+  &quot;type&quot;: &quot;object&quot;
+}</pre>
+</div><div class="schema-card" id="schema-task">
+  <div class="schema-card-title">Task</div>
+  <pre class="code-block">{
+  &quot;properties&quot;: {
+    &quot;completed&quot;: {
+      &quot;example&quot;: false,
+      &quot;type&quot;: &quot;boolean&quot;
+    },
+    &quot;description&quot;: {
+      &quot;example&quot;: &quot;Milk, bread and eggs&quot;,
+      &quot;type&quot;: &quot;string&quot;
+    },
+    &quot;id&quot;: {
+      &quot;example&quot;: &quot;123e4567-e89b-12d3-a456-426614174000&quot;,
+      &quot;type&quot;: &quot;string&quot;
+    },
+    &quot;title&quot;: {
+      &quot;example&quot;: &quot;Buy groceries&quot;,
+      &quot;type&quot;: &quot;string&quot;
+    }
+  },
+  &quot;required&quot;: [
+    &quot;id&quot;,
+    &quot;title&quot;,
+    &quot;completed&quot;
+  ],
+  &quot;type&quot;: &quot;object&quot;
+}</pre>
+</div></section></main>
+  </div>
+  <script>
+function toggleOp(id){var b=document.getElementById('body-'+id);if(b)b.classList.toggle('open')}
+function toggleGroup(id){var el=document.getElementById('grp-'+id);if(el)el.style.display=el.style.display==='none'?'':'none'}
+function filterSidebar(q){
+  q=q.toLowerCase().trim();
+  document.querySelectorAll('.sidebar-item').forEach(function(a){
+    a.classList.toggle('hidden',q!==''&&a.textContent.toLowerCase().indexOf(q)===-1);
+  });
+}
+var obs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting)document.querySelectorAll('.sidebar-item').forEach(function(a){
+      a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id);
+    });
+  });
+},{threshold:0.1});
+document.querySelectorAll('.operation').forEach(function(el){obs.observe(el)});
+function openHash(){
+  var id=window.location.hash.slice(1);
+  if(!id)return;
+  var b=document.getElementById('body-'+id);if(b)b.classList.add('open');
+  var el=document.getElementById(id);if(el)setTimeout(function(){el.scrollIntoView({behavior:'smooth'})},50);
+}
+window.addEventListener('hashchange',openHash);
+openHash();
+</script>
+</body>
+</html>

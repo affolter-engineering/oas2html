@@ -1,0 +1,97 @@
+openapi: 3.0.0
+info:
+  title: Task Management API
+  description: A simple API to manage your daily tasks.
+  version: 1.0.0
+servers:
+  - url: https://example.com
+    description: Production server
+
+paths:
+  /tasks:
+    get:
+      summary: List all tasks
+      description: Retrieves a list of all tasks.
+      responses:
+        '200':
+          description: A successful response containing an array of tasks.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '500':
+          description: Internal server error.
+
+    post:
+      summary: Create a new task
+      description: Adds a new task to the management list.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewTask'
+      responses:
+        '201':
+          description: Task created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid input data.
+
+  /tasks/{id}:
+    delete:
+      summary: Delete a task
+      description: Removes a specific task by its unique ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the task to delete.
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Task deleted successfully. No content returned.
+        '404':
+          description: Task not found.
+        '500':
+          description: Internal server error.
+
+components:
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - completed
+      properties:
+        id:
+          type: string
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        title:
+          type: string
+          example: "Buy groceries"
+        description:
+          type: string
+          example: "Milk, bread and eggs"
+        completed:
+          type: boolean
+          example: false
+
+    NewTask:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: "Buy groceries"
+        description:
+          type: string
+          example: "Milk, bread and eggs"
