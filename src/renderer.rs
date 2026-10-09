@@ -591,7 +591,7 @@ fn sidebar_html<T>(
     html.push_str(&format!(
         r##"<footer class="sidebar-footer">
   <a href="https://github.com/affolter-engineering/oas2html" class="sidebar-footer-link">oas2html</a>
-  <span class="sidebar-footer-ver">v{}</span>
+  <span class="sidebar-footer-ver">{}</span>
 </footer>"##,
         env!("CARGO_PKG_VERSION"),
     ));
