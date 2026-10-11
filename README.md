@@ -58,22 +58,22 @@ cargo build --release
 | Feature | Swagger 2.0 | OpenAPI 3.x |
 |---|---|---|
 | Info (title, version, description) | x | x |
-| Servers / host | x | x |
+| Servers/host | x | x |
 | Tags | x | x |
 | Paths and operations | x | x |
 | Parameters | x | x |
 | Request body | x | x |
 | Responses | x | x |
-| Schemas / definitions | x | x |
+| Schemas/definitions | x | x |
 | Security schemes | x | x |
-| Contact / license | x | x |
+| Contact/license | x | x |
 
 Swagger 2.0 parsing uses the [`openapi`](https://crates.io/crates/openapi) crate for typed deserialization. OpenAPI 3.x specs are parsed via `serde_json`/`serde_yaml`.
 
 ## HTML output features
 
 - Sidebar with endpoint list, grouped by tag
-- Live filter / search
+- Live filter/search
 - Collapsible operation panels
 - Method badges (color-coded GET/POST/PUT/PATCH/DELETE ...)
 - Parameter tables with location badges (path/query/header/body)
