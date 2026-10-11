@@ -6,6 +6,15 @@ Supports JSON and YAML input. Output is a single HTML file with embedded CSS and
 
 ![Screenshot of oas2html HTML output](screenshot.png)
 
+## Installation
+
+For Nix or NixOS users is a package available. Keep in mind that the latest releases might only
+be present in the ``unstable`` channel.
+
+```bash
+nix-env -iA nixos.oas2html
+```
+
 ## Usage
 
 ```bash
